@@ -967,3 +967,16 @@ def test_force_color(env_value):
     # means is_terminal returns True.
     console = Console(file=io.StringIO(), _environ={"FORCE_COLOR": env_value})
     assert console.is_terminal
+async def test_anthropic_async_streaming_callback() -> None:
+    """Test that streaming correctly invokes on_llm_new_token callback."""
+    callback_handler = FakeCallbackHandler()
+    callback_manager = CallbackManager([callback_handler])
+    llm = Anthropic(
+        model="claude-v1",
+        streaming=True,
+        callback_manager=callback_manager,
+        verbose=True,
+    )
+    result = await llm.agenerate(["How many toes do dogs have?"])
+    assert callback_handler.llm_streams > 1
+    assert isinstance(result, LLMResult)
